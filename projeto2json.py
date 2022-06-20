@@ -1,43 +1,38 @@
 import csv
 import ast
+import json
 
 def obter_dados() -> list:
     '''
     Função para obter os dados salvos no programa.
     PARAMETROS: N/A
-    RETORNO: lista com todas as entradas existentes
+    RETORNO: lista contendo dicts que representam as entradas
     '''
     try:
-        with open(('dados.csv'), 'r') as arq:
-            dados = list(csv.reader(arq, delimiter=',', lineterminator='\n'))
-        #converter strings em listas
-        dados = [[item[0], item[1], ast.literal_eval(item[2]), ast.literal_eval(item[3])] for item in dados]
+        with open(('dados.json'), 'r') as arq:
+            dados = json.loads(arq.read())
+            dados = dados['musicos']
     except:
-        with open(('dados.csv'), 'w') as arq:
-            pass
-        dados = []
-
+    #a base de dados nao existe, cria uma nova
+        with open(('dados.json'), 'w', encoding = 'utf-8') as arq:
+            dados = {'musicos':[]}
+            arq.write(json.dumps(dados))
+    
     return dados
 
-def apendar_dados(novo_dado: list) -> None:
+def apendar_dados(novo_dado: dict) -> None:
     '''
     Função para gravar novos dados no programa.
-    PARAMETROS: lista
+    PARAMETROS: list of dicts
     RETORNO: N/A
     '''
-    with open(('dados.csv'), 'a') as arq:
-        escritor = csv.writer(arq, delimiter=",", lineterminator="\n")
-        escritor.writerow(novo_dado)
+    dados = obter_dados()
+    dados.append({novo_dado['email'] : novo_dado})
 
-def reescrever_dados(dados: list) -> None:
-    '''
-    Função para reescrever dados no programa.
-    PARAMETROS: lista
-    RETORNO: N/A
-    '''
-    with open(('dados.csv'), 'w') as arq:
-        escritor = csv.writer(arq, delimiter=",", lineterminator="\n")
-        escritor.writerows(dados)
+
+    with open(('dados.json'), 'w') as arq:
+        dados_jason = json.dumps(dados)
+        arq.write(dados)
 
 def pega_opcao() -> str:
     '''
@@ -67,7 +62,7 @@ def valida_nome() -> str:
     PARAMETROS: N/A
     RETORNO: string, já validado e formatado, representando o nome do músico
     '''
-    nome = input("Digite o nome do músico: ").strip()
+    nome = input("Digite o nome do músico: ")
     nome_helper = nome.replace(" ", "")
     if nome_helper.isalpha():
         return nome.title()
@@ -81,11 +76,11 @@ def valida_email() -> str:
     PARAMETROS: N/A
     RETORNO: string, já validado e formatado, representando o email do músico
     '''
-    email = input("Digite o e-mail do músico: ").strip().lower()
-    eh_repetido = any([True if email == entrada[1] else False for entrada in obter_dados()])
+    email = input("Digite o e-mail do músico: ")
+    eh_repetido = any([True if email == entrada["email"] else False for entrada in list(obter_dados())])
     email_helper = email.replace("_", "").replace(".", "").replace("@", "")
     if email_helper.isalnum() and email.count("@") == 1 and eh_repetido == False:
-        return email
+        return email.lower()
     elif eh_repetido:
         print("Este email já existe na base de dados! O email deve ser único. Tente novamente.")
         return valida_email()
@@ -101,9 +96,9 @@ def cadastrar_musico() -> None:
     instrumentos = input("Digite os instrumentos que o músico toca (se for mais de 1, separar com vírgulas): ")
     lista_instrumentos = [instrumento.strip().lower() for instrumento in instrumentos.split(",")]
 
-    lista_dados = [nome, email, lista_generos, lista_instrumentos]
+    dict_dados = {'nome' : nome, 'email' : email, 'generos' : lista_generos, 'instrumentos' : lista_instrumentos}
 
-    apendar_dados(lista_dados)
+    apendar_dados(dict_dados)
 
 def busca_de_dados(dados: list, dados_para_busca: list, modo_de_busca: int) -> list:
     indices_nome, indices_email, indices_genero, indices_instrumento= [], [], [], []
@@ -160,49 +155,8 @@ def buscar_musicos() -> None:
     except (ValueError, Exception):
         print("Parâmetros incorretos. Tente novamente!")
 
-def substituicao_de_dados(user_encontrado:list) -> None:
-    dados = obter_dados()
-    dados = [dado for dado in dados if dado != user_encontrado[0]]
-    generos = user_encontrado[0][2]
-    instrumentos = user_encontrado[0][3]
-
-    print(f"User: {user_encontrado[0][0]} | Gênero(s) de interesse cadastrados: {', '.join(generos)}")
-    for i in range(len(generos)):
-        input_user = input(f"{generos[i].upper()} : Aperte ENTER para MANTER o gênero ou digite QUALQUER COISA para EXCLUIR: ").strip().lower()
-        generos[i] = generos[i] if input_user == "" else ""
-    input_user = input(f"Caso deseje adicionar mais gêneros, digite-os separados por vírgula: ").strip().lower()
-    input_user = [item.strip() for item in input_user.split(",")]
-    generos.extend(input_user)
-    while '' in generos:
-        generos.remove('')
-
-    print(f"User: {user_encontrado[0][0]} | Instrumento(s) cadastrados: {', '.join(instrumentos)}")
-    for i in range(len(instrumentos)):
-        input_user = input(f"{instrumentos[i].upper()} : Aperte ENTER para MANTER o instrumento ou digite QUALQUER COISA para EXCLUIR: ").strip().lower()
-        instrumentos[i] = instrumentos[i] if input_user == "" else ""
-    input_user = input(f"Caso deseje adicionar mais instrumentos, digite-os separados por vírgula: ").strip().lower()
-    input_user = [item.strip() for item in input_user.split(",")]
-    instrumentos.extend(input_user)  
-    while '' in instrumentos:
-        instrumentos.remove('')  
-
-    dados.append([user_encontrado[0][0], user_encontrado[0][1], generos, instrumentos])
-    print(dados)
-    return dados
-
 def modificar_musico() -> None:
     email = input("Digite o email do usuário para modificar: ").strip().lower()
-    email_helper = email.replace("_", "").replace(".", "").replace("@", "")
-    if email_helper.isalnum() and email.count("@") == 1:
-        user_encontrado = busca_de_dados(obter_dados(), ['', email, '', ''], 1)
-        if user_encontrado != []:
-            dados_substituidos = substituicao_de_dados(user_encontrado)
-            reescrever_dados(dados_substituidos)
-            print(f"Usuário {dados_substituidos[-1][0]} atualizado com sucesso!")
-        else:
-           print(f"Não há usuários com o e-mail digitado. Tente novamente!") 
-    else: 
-        print("O e-mail digitado é inválido. Tente novamente.")
 
 def menu() -> None:
     ativo = 1
@@ -230,6 +184,5 @@ def menu() -> None:
         else: 
             print("Opção inválida. Tente novamente.")
             ativo = 1
-
 
 menu()
