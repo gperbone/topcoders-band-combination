@@ -68,9 +68,13 @@ def valida_email() -> str:
     RETORNO: string, já validado e formatado, representando o email do músico
     '''
     email = input("Digite o e-mail do músico: ")
+    eh_repetido = any([True if email == entrada[1] else False for entrada in obter_dados()])
     email_helper = email.replace("_", "").replace(".", "").replace("@", "")
-    if email_helper.isalnum() and email.count("@") == 1:
+    if email_helper.isalnum() and email.count("@") == 1 and eh_repetido == False:
         return email.lower()
+    elif eh_repetido:
+        print("Este email já existe na base de dados! O email deve ser único. Tente novamente.")
+        return valida_email()
     else:
         print("O email deve conter apenas letras, underline, pontos e exatamente um @ apenas letras e espaços. Tente novamente.")
         return valida_email()
