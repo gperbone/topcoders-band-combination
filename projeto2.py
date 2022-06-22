@@ -36,6 +36,7 @@ def pega_opcao() -> str:
     PARAMETROS: N/A
     RETORNO: string, já validado, representando uma das opções disponíveis
     '''
+    
     print('''
 ::: LISTA DE OPÇÕES :::
 [1] Cadastrar músico

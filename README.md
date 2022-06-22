@@ -10,8 +10,8 @@ As atividades a serem executadas são:
 4. Montar banda (faz combinações entre os músicos que correspondem ao gênero e instrumentos digitados);
 0. Sair
 
-##### Linguagem: Python
-##### O que aprendi: recursão, tratamento de arquivos, tratamento de erros, list comprehension, args, métodos de strings, métodos de listas...
+#### Linguagem: Python
+#### O que aprendi: recursão, tratamento de arquivos, tratamento de erros, list comprehension, args, métodos de strings, métodos de listas...
 _____
 
 # Module 2 Project - Band generator program
@@ -26,5 +26,5 @@ The performed activities are:
 4. Band generator (performs combinations among musicians thar correspond to the genre and intruments that the user inputs);
 0. Exit
 
-##### Language: Python
-##### What I learned: recuO que aprendi: recursion, file handling, error handling, list comprehension, args, string methods, list methods...
+#### Language: Python
+#### What I learned: recuO que aprendi: recursion, file handling, error handling, list comprehension, args, string methods, list methods...
