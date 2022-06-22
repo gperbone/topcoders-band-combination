@@ -78,10 +78,10 @@ def valida_email(dados:list) -> str:
         return email
     elif eh_repetido:
         print("Este email já existe na base de dados! O email deve ser único. Tente novamente.")
-        return valida_email()
+        return valida_email(dados)
     else:
         print("O email deve conter apenas letras, underline, pontos e exatamente um @ apenas letras e espaços. Tente novamente.")
-        return valida_email()
+        return valida_email(dados)
 
 def valida_genero() -> list:
     generos = input("Digite os gêneros musicais de interesse do músico (se for mais de 1, separar com vírgulas): ").strip()
@@ -195,8 +195,9 @@ def modificar_musico(dados:list) -> None:
     email = input("Digite o email do usuário para modificar: ").strip().lower()
     email_helper = email.replace("_", "").replace(".", "").replace("@", "")
     if email_helper.isalnum() and email.count("@") == 1:
-        user_encontrado = [index for index in range(len(dados)) if dados[index][1] == email][0]
+        user_encontrado = [index for index in range(len(dados)) if dados[index][1] == email]
         if user_encontrado != []:
+            user_encontrado = user_encontrado[0]
             dados_substituidos = substituicao_de_dados(dados, user_encontrado)
             print(f"Usuário {dados_substituidos[user_encontrado][0]} atualizado com sucesso!")
         else:
@@ -208,49 +209,68 @@ def modificar_musico(dados:list) -> None:
 
     return dados
 
-def executa_combinacoes(musicos_por_instrumento:list, instrumentos:list) -> list:
+def executa_combinacoes(musicos_por_instrumento:list) -> list:
     combinacoes = []
-
-    while len(musicos_por_instrumento) > 1:
+    if len(musicos_por_instrumento) > 1:
         for musico in musicos_por_instrumento[0]:
             for outro_musico in musicos_por_instrumento[1]:
-                combinacoes.append([musico, outro_musico])
+                if isinstance(musico[0], str):
+                    combinacoes.append([musico, outro_musico])
+                else:
+                    combinacoes.append([*musico, outro_musico])
             
         restante = [combinacoes] + musicos_por_instrumento[2:]
 
-    return combinacoes(restante) if len(musicos_por_instrumento) > 1 else musicos_por_instrumento
+    return executa_combinacoes(restante) if len(musicos_por_instrumento) > 1 else musicos_por_instrumento
 
 def limpa_combinacoes(resultado: list) -> list:
-    lista_emails = [musico[1] for musico in resultado for musicos in resultado]
+    lista_emails = []
+    for banda in resultado:
+        emails = []
+        for musico in banda:
+            emails.append(musico[1])
+        lista_emails.append(emails)
 
     return [banda for index, banda in enumerate(resultado) if len(set(lista_emails[index])) == len(banda)]
 
 def imprime_combinacoes(resultado: list, instrumentos: list) -> None:
     for i in range(len(resultado)):
         print(f"Banda {i+1}:")
-        for item in resultado[i]:
-            print(f"{instrumentos[i]}.upper() : {resultado[i][0]} | {resultado[i][1]} | {', '.join(resultado[i][2])} | {', '.join(resultado[i][3])}")
+        for j in range(len(resultado[i])):
+            print(f"{instrumentos[j].upper()} : {resultado[i][j][0]} | {resultado[i][j][1]} | {', '.join(resultado[i][j][2])} | {', '.join(resultado[i][j][3])}")
+
+def valida_quantidade() -> int:
+    quantidade = input("Digite a quantidade de músicos para sua banda (deve ser MAIOR QUE 1): ").strip()
+    try:
+        quantidade = int(quantidade)
+        if quantidade > 1:
+            return quantidade
+        else:
+            print("A quantidade de integrantes numa banda deve ser MAIOR QUE 1! Tente novamente.")
+            raise Exception
+    except:
+        print("Entrada inválida. Tente novamente!")
+        return valida_quantidade()
 
 def montar_banda(dados: list):
     genero_busca = input("Digite o gênero desejado para sua banda: ").strip().lower()
-    quantidade = input("Digite a quantidade de músicos para sua banda: ").strip()
-    while not(quantidade.isdigit()):
-        quantidade = input("Digite a quantidade de músicos para sua banda: ").strip()
-    quantidade = int(quantidade)
+    quantidade = valida_quantidade()
     instrumentos = []
     for i in range(quantidade):
         instrumentos.append(input(f"Digite o {i+1}o instrumento para sua banda: ").strip())
     #filtra musicos do genero por instrumentos
 
-    lista_por_instrumentos = []
+    lista_por_instrumentos = [[] for instrumento in instrumentos]
     for i in range(len(instrumentos)):
         for musico in dados:
             if instrumentos[i] in musico[3] and genero_busca in musico[2]:
-                lista_por_instrumentos.append(musico)
-
-    resultado = executa_combinacoes(lista_por_instrumentos, instrumentos)
-    resultado = limpa_combinacoes(resultado)
-    imprime_combinacoes(resultado, instrumentos)
+                lista_por_instrumentos[i].append(musico)
+    resultado = executa_combinacoes(lista_por_instrumentos)
+    resultado = limpa_combinacoes(resultado[0])
+    if len(resultado) > 0:
+        imprime_combinacoes(resultado,instrumentos)
+    else:
+        print("Sentimos muito! Não há como formar a banda requerida com os músicos cadastrados.")
 
     return dados
 
