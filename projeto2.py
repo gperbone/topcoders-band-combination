@@ -3,7 +3,7 @@ import ast
 
 def obter_dados() -> list:
     '''
-    Função para obter os dados salvos no programa.
+    Função para obter os dados do programa. Caso o arquivo não exista, um vazio é criado.
     PARAMETROS: N/A
     RETORNO: lista com todas as entradas existentes
     '''
@@ -12,7 +12,8 @@ def obter_dados() -> list:
             dados = list(csv.reader(arq, delimiter=',', lineterminator='\n'))
         #converter strings em listas
         dados = [[item[0], item[1], ast.literal_eval(item[2]), ast.literal_eval(item[3])] for item in dados]
-    except:
+    except FileNotFoundError:
+        print("qq")
         with open(('dados.csv'), 'w') as arq:
             pass
         dados = []
@@ -21,8 +22,8 @@ def obter_dados() -> list:
 
 def salvar_dados(dados: list) -> None:
     '''
-    Função para reescrever dados no programa.
-    PARAMETROS: lista
+    Função para salvar dados no programa.
+    PARAMETROS: lista com as entradas a serem salvas
     RETORNO: N/A
     '''
     with open(('dados.csv'), 'w') as arq:
@@ -84,6 +85,11 @@ def valida_email(dados:list) -> str:
         return valida_email(dados)
 
 def valida_genero() -> list:
+    '''
+    Função para obter o gênero de interesse do músico. É obrigatório a digitação de pelo menos um.
+    PARAMETROS: N/A
+    RETORNO: lista com todas as entradas existentes
+    '''
     generos = input("Digite os gêneros musicais de interesse do músico (se for mais de 1, separar com vírgulas): ").strip()
     if generos == "":
         print("Digite pelo menos um!")
@@ -92,6 +98,11 @@ def valida_genero() -> list:
         return [genero.strip().lower() for genero in generos.split(",")]
     
 def valida_instrumento() -> list:
+    '''
+    Função para obter o instrumento tocado pelo músico. É obrigatório a digitação de pelo menos um.
+    PARAMETROS: N/A
+    RETORNO: lista com todas as entradas existentes
+    '''
     instrumentos = input("Digite os instrumentos que o músico toca (se for mais de 1, separar com vírgulas): ").strip()
     if instrumentos == "":
         print("Digite pelo menos um!")
@@ -100,6 +111,11 @@ def valida_instrumento() -> list:
         return [instrumento.strip().lower() for instrumento in instrumentos.split(",")]
 
 def cadastrar_musico(dados:list) -> list:
+    '''
+    Função para cadastrar um novo músico
+    PARAMETROS: lista com todas as entradas existentes
+    RETORNO: lista com todas as entradas existentes (contendo o novo músico)
+    '''
     nome = valida_nome()
     email = valida_email(dados)
     lista_generos = valida_genero()
@@ -112,6 +128,11 @@ def cadastrar_musico(dados:list) -> list:
     return dados
 
 def busca_de_dados(dados: list, dados_para_busca: list, modo_de_busca: int) -> list:
+    '''
+    Função que realiza a busca de músico dentre os cadastrados, de acordo com parametros digitados pelo user
+    PARAMETROS: lista com todas as entradas existentes; lista com os parâmetros de busca; int representando busca E ou OU
+    RETORNO: lista com todos os músicos encontrados para aqueles parâmetros
+    '''
     indices_nome, indices_email, indices_genero, indices_instrumento= [], [], [], []
     contagem = 0
 
@@ -140,6 +161,11 @@ def busca_de_dados(dados: list, dados_para_busca: list, modo_de_busca: int) -> l
         return [ocorrencia for index, ocorrencia in enumerate(dados) if index in indices_OU]
 
 def imprimir_resultados_busca(resultados:list) -> None:
+    '''
+    Função para imprimir resultados da busca
+    PARAMETROS: lista com todas os resultados da busca
+    RETORNO: N/A
+    '''
     if resultados != []:
         print("RESULTADO # : NOME | EMAIL | GÊNEROS | INSTRUMENTOS")
         for i in range(len(resultados)):
@@ -148,6 +174,11 @@ def imprimir_resultados_busca(resultados:list) -> None:
         print("Não há resultados que correpondam à sua busca!")
 
 def buscar_musicos(dados:list) -> list:
+    '''
+    Função que pede os parâmetros de busca e chama as funçoes de buscar e imprimir
+    PARAMETROS: lista com todas as entradas(músicos) existentes
+    RETORNO: lista com todas as entradas(músicos) existentes - independente do resultado de busca
+    '''
     nome = input("Digite um nome para busca, ou aperte enter para continuar: ").strip().title()
     email = input("Digite um e-mail para busca, ou aperte enter para continuar: ").strip().lower()
     genero = input("Digite um gênero musical, ou aperte enter para continuar: ").strip().lower()
@@ -167,8 +198,12 @@ def buscar_musicos(dados:list) -> list:
     finally:
         return dados
 
-def substituicao_de_dados(dados: list, user_encontrado:list) -> None:
-
+def substituicao_de_dados(dados: list, user_encontrado:list) -> list:
+    '''
+    Função que realiza a exclusão/adição de dados para um usuário encontrado
+    PARAMETROS: lista com todas as entradas(músicos) existentes; lista representando o usuário a ser alterado
+    RETORNO: lista com todas as entradas(músicos) existentes (já modificado)
+    '''
     print(f"User: {dados[user_encontrado][0]} | Gênero(s) de interesse cadastrados: {', '.join(dados[user_encontrado][2])}")
     for i in range(len(dados[user_encontrado][2])):
         input_user = input(f"{dados[user_encontrado][2][i].upper()} : Aperte ENTER para MANTER o gênero ou digite QUALQUER COISA para EXCLUIR: ").strip().lower()
@@ -191,17 +226,22 @@ def substituicao_de_dados(dados: list, user_encontrado:list) -> None:
 
     return dados
 
-def modificar_musico(dados:list) -> None:
-    email = input("Digite o email do usuário para modificar: ").strip().lower()
+def modificar_musico(dados:list) -> list:
+    '''
+    Função que pede os parâmetros de modificação, encontra o usuário e chama a funcão de modificar
+    PARAMETROS: lista com todas as entradas(músicos) existentes
+    RETORNO: lista com todas as entradas(músicos) existentes - independente do resultado de busca
+    '''
+    email = input("Digite o email do músico para modificar: ").strip().lower()
     email_helper = email.replace("_", "").replace(".", "").replace("@", "")
     if email_helper.isalnum() and email.count("@") == 1:
         user_encontrado = [index for index in range(len(dados)) if dados[index][1] == email]
         if user_encontrado != []:
             user_encontrado = user_encontrado[0]
             dados_substituidos = substituicao_de_dados(dados, user_encontrado)
-            print(f"Usuário {dados_substituidos[user_encontrado][0]} atualizado com sucesso!")
+            print(f"Músico {dados_substituidos[user_encontrado][0]} atualizado com sucesso!")
         else:
-           print(f"Não há usuários com o e-mail digitado. Tente novamente!") 
+           print(f"Não há músicos com o e-mail digitado. Tente novamente!") 
            dados_substituidos = dados
     else: 
         print("O e-mail digitado é inválido. Tente novamente.")
@@ -210,6 +250,11 @@ def modificar_musico(dados:list) -> None:
     return dados
 
 def executa_combinacoes(musicos_por_instrumento:list) -> list:
+    '''
+    Função que executa todas as permutações possíveis entre os usuários das listas
+    PARAMETROS: lista de listas (cada lista representa os usuários que tocam determinado instrumento)
+    RETORNO: lista com todas as permutações
+    '''
     combinacoes = []
     if len(musicos_por_instrumento) > 1:
         for musico in musicos_por_instrumento[0]:
@@ -224,6 +269,11 @@ def executa_combinacoes(musicos_por_instrumento:list) -> list:
     return executa_combinacoes(restante) if len(musicos_por_instrumento) > 1 else musicos_por_instrumento
 
 def limpa_combinacoes(resultado: list) -> list:
+    '''
+    Função que exclui as permutações que apresentam um mesmo usuário mais de uma vez
+    PARAMETROS: lista com todas as permutações
+    RETORNO: lista com todas as permutações (ssem as permutações que apresentam um mesmo usuário mais de uma vez)
+    '''
     lista_emails = []
     for banda in resultado:
         emails = []
@@ -234,12 +284,22 @@ def limpa_combinacoes(resultado: list) -> list:
     return [banda for index, banda in enumerate(resultado) if len(set(lista_emails[index])) == len(banda)]
 
 def imprime_combinacoes(resultado: list, instrumentos: list) -> None:
+    '''
+    Função que imprime as permutações possiveis
+    PARAMETROS: lista com permutações (bandas)
+    RETORNO: N/A
+    '''
     for i in range(len(resultado)):
         print(f"Banda {i+1}:")
         for j in range(len(resultado[i])):
             print(f"{instrumentos[j].upper()} : {resultado[i][j][0]} | {resultado[i][j][1]} | {', '.join(resultado[i][j][2])} | {', '.join(resultado[i][j][3])}")
 
 def valida_quantidade() -> int:
+    '''
+    Função que valida o número de músicos digitado (deve ser maior que 1)
+    PARAMETROS: N/A
+    RETORNO: inteiro
+    '''
     quantidade = input("Digite a quantidade de músicos para sua banda (deve ser MAIOR QUE 1): ").strip()
     try:
         quantidade = int(quantidade)
@@ -252,13 +312,17 @@ def valida_quantidade() -> int:
         print("Entrada inválida. Tente novamente!")
         return valida_quantidade()
 
-def montar_banda(dados: list):
+def montar_banda(dados: list) -> list:
+    '''
+    Função que pede inputs e chama as funções para montar uma banda e imprimir resultados
+    PARAMETROS: lista com todos os músicos cadastrados
+    RETORNO: lista com todos os músicos cadastrados
+    '''
     genero_busca = input("Digite o gênero desejado para sua banda: ").strip().lower()
     quantidade = valida_quantidade()
     instrumentos = []
     for i in range(quantidade):
         instrumentos.append(input(f"Digite o {i+1}o instrumento para sua banda: ").strip())
-    #filtra musicos do genero por instrumentos
 
     lista_por_instrumentos = [[] for instrumento in instrumentos]
     for i in range(len(instrumentos)):
@@ -275,6 +339,11 @@ def montar_banda(dados: list):
     return dados
 
 def menu(dados:list) -> None:
+    '''
+    Função menu, que repete em loop até que o usuário digite 0
+    PARAMETROS: lista com todos os músicos cadastrados
+    RETORNO: N/A
+    '''
     opcoes = {
         "1": cadastrar_musico,
         "2": buscar_musicos,
