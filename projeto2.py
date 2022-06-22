@@ -184,10 +184,14 @@ def buscar_musicos(dados:list) -> list:
     genero = input("Digite um gênero musical, ou aperte enter para continuar: ").strip().lower()
     instrumento = input("Digite um instrumento, ou aperte enter para continuar: ").strip().lower()
     modo = input("Digite 1 se a busca deve corresponder a todos os campos digitados, ou 2 para pelo menos um: ")
+    dados_para_busca = [nome, email, genero, instrumento]
+
+    if all([True if item == "" else False for item in dados_para_busca]):
+        print("Você não digitou nenhum dado! Tente novamente mais tarde!")
+        return dados
 
     try:
         modo_de_busca = int(modo)
-        dados_para_busca = [nome, email, genero, instrumento]
         if modo_de_busca == 1 or modo_de_busca == 2:
             resultados = busca_de_dados(dados, dados_para_busca, modo_de_busca)
             imprimir_resultados_busca(resultados)
